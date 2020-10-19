@@ -1,49 +1,61 @@
-class MMIO{
-  constructor(sharedBuffer){
+class MMIO_Mirror{
+  constructor(bus_ch){
+    this.bus_ch = bus_ch;
+    var buffer = new ArrayBuffer(10000);
     this.memory = [];
-    this.memory[1] = new Uint8Array(sharedBuffer);
-    this.memory[2] = new Uint16Array(sharedBuffer);
-    this.memory[4] = new Uint32Array(sharedBuffer);
-    this.size = sharedBuffer.byteLength;
+    this.memory[1] = new Uint8Array(buffer);
+    this.memory[2] = new Uint16Array(buffer);
+    this.memory[4] = new Uint32Array(buffer);
   }
 
   load(addr, size){
     addr &= 0xFFFF;
-    return Atomics.load(this.memory[size], (addr/size) | 0);
+    return this.memory[size][(addr/size) | 0];
   }
 
-  store(addr, size, value){
+  store(addr, size, value, local=false){
     addr &= 0xFFFF;
-    Atomics.store(this.memory[size], (addr/size) | 0, value);
+    this.memory[size][(addr/size) | 0] = value;
+    this.bus_ch.postMessage({write:true, addr, size, value})
   }
 }
 
 class BusHelper{
   constructor(){
-    this.mmio = new MMIO
     this.bus_ch = new BroadcastChannel('bus_channel');
     this.syscalls = {}
+    this.addressList = {}
+    this.mmio = new MMIO_Mirror(this.bus_ch);
     this.bus_ch.onmessage = function(ev) {
       if(ev.data.syscall){
         if(this.syscalls[ev.data.syscall]){
           this.syscalls[ev.data.syscall](ev.data.data);
         }
+      }else if(ev.data.write){
+        for (let i = 0; i < ev.data.size; i++) {
+          const wp = this.addressList[ev.data.addr + i]; 
+          if(wp){
+            wp.f((ev.data.value>>(i<<3)) & ((1 << wp.size) - 1));
+          }
+        }
+        this.mmio.store(ev.data.addr, ev.data.size, ev.data.value, local=true);
       }
-    }
+    }.bind(this);
   }
 
   registerSyscallCallback(number, f){
     this.syscalls[number] = f;
   }
 
-  watchAddress(addr, f){
-    
+  watchAddress(addr, f, size=4){
+    this.addressList[addr] = {f, size};
   }
 
 }
 
 export const bus_helper = new BusHelper();
 
+import {navegation} from "../../assets/js/interface_elements.js";
 export class Device{
   constructor(){
     this.syscalls = [];
@@ -51,7 +63,6 @@ export class Device{
   
   addTab(name, icon, id, content){
     if(!this.navegation){
-      import {navegation} from "../../assets/js/interface_elements.js";
       this.navegation = navegation;
     }
     this.navegation.addTab(name, icon, id, content);
@@ -82,9 +93,9 @@ export class Device{
     if(callback != undefined){
       bus_helper.registerSyscallCallback(number, callback);
     }
-    this.sim_ctrl_ch.postMessage({dst: "simulator", cmd: "load_syscall", syscall: {number, code}, desc});
+    this.sim_ctrl_ch.postMessage({dst: "simulator", cmd: "load_syscall", value: {number, code}, desc});
     if(persistent){
-      this.syscalls.push({dst: "simulator", cmd: "load_syscall", syscall: {number, code}});
+      this.syscalls.push({dst: "simulator", cmd: "load_syscall", value: {number, code}});
     }
   }
 

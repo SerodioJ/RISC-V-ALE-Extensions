@@ -1,7 +1,7 @@
 class MMIO_Mirror{
   constructor(bus_ch){
     this.bus_ch = bus_ch;
-    var buffer = new ArrayBuffer(10000);
+    var buffer = new ArrayBuffer(0x10000);
     this.memory = [];
     this.memory[1] = new Uint8Array(buffer);
     this.memory[2] = new Uint16Array(buffer);
@@ -93,9 +93,9 @@ export class Device{
     if(callback != undefined){
       bus_helper.registerSyscallCallback(number, callback);
     }
-    this.sim_ctrl_ch.postMessage({dst: "simulator", cmd: "load_syscall", value: {number, code}, desc});
+    this.sim_ctrl_ch.postMessage({dst: "simulator", cmd: "load_syscall", syscall: {number, code}, desc});
     if(persistent){
-      this.syscalls.push({dst: "simulator", cmd: "load_syscall", value: {number, code}});
+      this.syscalls.push({dst: "simulator", cmd: "load_syscall", syscall: {number, code}});
     }
   }
 

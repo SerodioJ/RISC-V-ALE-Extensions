@@ -16,7 +16,9 @@ class MMIO_Mirror{
   store(addr, size, value, local=false){
     addr &= 0xFFFF;
     this.memory[size][(addr/size) | 0] = value;
-    this.bus_ch.postMessage({write:true, addr, size, value})
+    if(!local){
+      this.bus_ch.postMessage({write:true, addr, size, value})
+    }
   }
 }
 
@@ -38,7 +40,7 @@ class BusHelper{
             wp.f((ev.data.value>>(i<<3)) & ((1 << wp.size) - 1));
           }
         }
-        this.mmio.store(ev.data.addr, ev.data.size, ev.data.value, local=true);
+        this.mmio.store(ev.data.addr, ev.data.size, ev.data.value, true);
       }
     }.bind(this);
   }
@@ -98,6 +100,18 @@ export class Device{
       this.syscalls.push({dst: "simulator", cmd: "load_syscall", syscall: {number, code}});
     }
   }
+
+  simulator_log(log){
+    this.setupSimControl();
+    this.sim_ctrl_ch.postMessage({dst: "interface", type: "sim_log", log});
+  }
+
+  setBaseAddress(base_addr){
+    this.base_addr = base_addr;
+    this.setup();
+  }
+
+  setup(){}
 
   set onRun(f){
     this.setupSimControl();

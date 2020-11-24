@@ -1,9 +1,8 @@
 /*jshint esversion: 9 */
 import {Device} from "./utils.js";
 
-export default class MIDI_Synthesizer extends Device{
-  constructor(){
-    super();
+class MIDI_Synthesizer extends Device{
+  setup(){
     this.load();
   }
 
@@ -21,3 +20,6 @@ export default class MIDI_Synthesizer extends Device{
     this.synth.play(reg.a0, reg.a1 >> 24, ((reg.a1 >> 16)&0xFF)/256, 0, (reg.a1 & 0xFFFF)/1000, reg.a2);
   }
 }
+
+const synth = new MIDI_Synthesizer();
+export default synth;

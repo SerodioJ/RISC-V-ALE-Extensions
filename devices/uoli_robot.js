@@ -1,9 +1,8 @@
 /*jshint esversion: 9 */
 import {Device} from "./utils.js";
 
-export default class Uoli_robot extends Device{
-  constructor(){
-    super();
+class Uoli_robot extends Device{
+  setup(){
     this.addTab("Uóli", "fa-robot", "uoli", `
       <iframe style="width:100%;height:100%" id="uoliWindow" src="./extensions/devices/dependencies/uoli-unity/index.html" frameborder="0"></iframe>
     `);
@@ -98,3 +97,6 @@ export default class Uoli_robot extends Device{
   }
 
 }
+
+const uoli = new Uoli_robot();
+export default uoli;

@@ -91,7 +91,7 @@ class Car extends Device{
 
   camera_callback(img){
     for (let i = 0; i < img.length; i++) {
-      this.bus.mmio.store(this.base_addr + 32 + i, 1, img[i]);
+      this.bus.mmio.store(this.base_addr + 36 + i, 1, img[i]);
     }
     this.bus.mmio.store(this.base_addr + 1, 1, 0);
   }

@@ -31,7 +31,7 @@ class Car extends Device{
     }.bind(this), 1);
 
     this.bus.watchAddress(this.base_addr + 33, function (value) {
-      if(value == 0xFFFFFFFF) value = -1;
+      if(value == 0xFF) value = -1;
       this.unityModule.SendMessage("Control", "setVertical", value);
     }.bind(this), 1);
 

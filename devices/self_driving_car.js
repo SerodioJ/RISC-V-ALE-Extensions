@@ -27,6 +27,7 @@ class Car extends Device{
     }.bind(this), 1);
 
     this.bus.watchAddress(this.base_addr + 32, function (value) {
+      value = ((value|0)<<24)>>24;
       this.unityModule.SendMessage("Control", "setHorizontal", value/128);
     }.bind(this), 1);
 

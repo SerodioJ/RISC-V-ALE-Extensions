@@ -36,8 +36,9 @@ class BusHelper{
       }else if(ev.data.write){
         for (let i = 0; i < ev.data.size; i++) {
           const wp = this.addressList[ev.data.addr + i]; 
+          const mask = [0, 0xFF, 0xFFFF, 0xFFFFFF, 0xFFFFFFFF][wp.size];
           if(wp){
-            wp.f((ev.data.value>>(i<<3)) & ((1 << (8*wp.size)) - 1)); // TODO: Check endianness 
+            wp.f((ev.data.value>>(i<<3)) & mask); // TODO: Check endianness 
           }
         }
         this.mmio.store(ev.data.addr, ev.data.size, ev.data.value, true);

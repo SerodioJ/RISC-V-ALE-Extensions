@@ -1,33 +1,12 @@
-class MMIO_Mirror{
-  constructor(bus_ch){
-    this.bus_ch = bus_ch;
-    var buffer = new ArrayBuffer(0x10000);
-    this.memory = [];
-    this.memory[1] = new Uint8Array(buffer);
-    this.memory[2] = new Uint16Array(buffer);
-    this.memory[4] = new Uint32Array(buffer);
-  }
-
-  load(addr, size){
-    addr &= 0xFFFF;
-    return this.memory[size][(addr/size) | 0];
-  }
-
-  store(addr, size, value, local=false){
-    addr &= 0xFFFF;
-    this.memory[size][(addr/size) | 0] = value;
-    if(!local){
-      this.bus_ch.postMessage({write:true, addr, size, value})
-    }
-  }
-}
+import { mmio, simulator_controller } from "../../modules/simulator.js";
 
 class BusHelper{
   constructor(){
-    this.bus_ch = new BroadcastChannel('bus_channel');
+    if(!window.uniq_id) window.uniq_id = performance.now();
+    this.bus_ch = new BroadcastChannel('bus_channel' + window.uniq_id);
     this.syscalls = {}
     this.addressList = {}
-    this.mmio = new MMIO_Mirror(this.bus_ch);
+    this.mmio = mmio;
     this.bus_ch.onmessage = function(ev) {
       if(ev.data.syscall){
         if(this.syscalls[ev.data.syscall]){
@@ -72,10 +51,10 @@ export class Device{
   }
 
   setupSimControl(){
-    if(!this.sim_ctrl_ch){
-      this.sim_ctrl_ch = new BroadcastChannel("simulator_control");
-      this.sim_ctrl_ch.onmessage = function(ev) {
-        if(ev.data.dst == "interface" && ev.data.type == "status"){
+    if(!this.sim_status_ch){
+      this.sim_status_ch = new BroadcastChannel("simulator_status" + window.uniq_id);
+      this.sim_status_ch.onmessage = function(ev) {
+        if(ev.data.type == "status"){
           if(this.runningCallback && ev.data.status.running) this.runningCallback();
           if(this.stoppingCallback && !ev.data.status.running) this.stoppingCallback();
           if(this.startingCallback && ev.data.status.starting) this.startingCallback();
@@ -87,7 +66,7 @@ export class Device{
 
   installSyscalls(){
     for (const s in this.syscalls) {
-      this.sim_ctrl_ch.postMessage(this.syscalls[s]);
+      simulator_controller.load_syscall(this.syscalls[s].number, this.syscalls[s].code);
     }
   }
 
@@ -96,15 +75,15 @@ export class Device{
     if(callback != undefined){
       bus_helper.registerSyscallCallback(number, callback);
     }
-    this.sim_ctrl_ch.postMessage({dst: "simulator", cmd: "load_syscall", syscall: {number, code}, desc});
+    simulator_controller.load_syscall(number, code, desc);
     if(persistent){
-      this.syscalls.push({dst: "simulator", cmd: "load_syscall", syscall: {number, code}});
+      this.syscalls.push({number, code});
     }
   }
 
   simulator_log(log){
     this.setupSimControl();
-    this.sim_ctrl_ch.postMessage({dst: "interface", type: "sim_log", log});
+    this.sim_status_ch.postMessage({type: "sim_log", log});
   }
 
   setBaseAddress(base_addr){

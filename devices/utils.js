@@ -2,7 +2,6 @@ import { mmio, simulator_controller } from "../../modules/simulator.js";
 
 class BusHelper{
   constructor(){
-    if(!window.uniq_id) window.uniq_id = performance.now();
     this.bus_ch = new BroadcastChannel('bus_channel' + window.uniq_id);
     this.syscalls = {}
     this.addressList = {}

@@ -1,7 +1,19 @@
 /*jshint esversion: 9 */
-import {Device} from "../module_loader.js";
+import {Device} from "../utils.js";
 
-export default class Cleaner_robot extends Device{
+class Cleaner_robot extends Device{
+  setup(){
+    this.addTab("Roomba", "fa-robot", "uoli", `
+      <iframe style="width:100%;height:100%" id="uoliWindow" src="./extensions/devices/dependencies/uoli-unity/index.html" frameborder="0"></iframe>
+    `);
+    document.getElementById("uoliWindow").onload = (function(){
+      this.unityModule = document.getElementById("uoliWindow").contentWindow.unityInstance;
+      document.getElementById("uoliWindow").contentWindow.setUoliCallbacks(this.uoliStatus.bind(this), this.uoliSensorStatus.bind(this), function(){
+        this.unityModule.SendMessage("walle", "keyboardInputToogle", 0);
+      }.bind(this));
+    }).bind(this);
+  }
+
   constructor(...args){
     super(...args);
     this.addCard(`

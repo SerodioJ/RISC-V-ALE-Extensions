@@ -19,7 +19,6 @@ class BusHelper{
             wp.f((ev.data.value>>(i<<3)) & mask); // TODO: Check endianness 
           }
         }
-        this.mmio.store(ev.data.addr, ev.data.size, ev.data.value, true);
       }
     }.bind(this);
   }

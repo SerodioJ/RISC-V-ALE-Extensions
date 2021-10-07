@@ -13,6 +13,20 @@ class MIDI_Synthesizer extends Device{
       sendMessage({a0, a1, a2});
     `;
     this.registerSyscall(2048, "Midi Synthesizer", syscall, this.onmessage.bind(this));
+    this.bus.watchAddress(this.base_addr, value => {
+      if(value != 0xFF){
+        console.log(this.bus.mmio.load(this.base_addr + 4, 1));
+        this.synth.play(
+          this.bus.mmio.load(this.base_addr + 2, 2), // inst
+          this.bus.mmio.load(this.base_addr + 4, 1), // note
+          this.bus.mmio.load(this.base_addr + 5, 1)/256, // vel
+          0, // delay
+          this.bus.mmio.load(this.base_addr + 6, 2)/1000, // duration
+          this.bus.mmio.load(this.base_addr, 1) // ch
+        );
+        this.bus.mmio.store(this.base_addr, 1, 0xFF);
+      }
+    }, 1);
   }
 
   onmessage(reg){

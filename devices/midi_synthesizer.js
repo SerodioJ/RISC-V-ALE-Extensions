@@ -13,6 +13,8 @@ class MIDI_Synthesizer extends Device{
       sendMessage({a0, a1, a2});
     `;
     this.registerSyscall(2048, "Midi Synthesizer", syscall, this.onmessage.bind(this));
+    this.bus.mmio.store(this.base_addr, 1, 0xFF);
+    this.onStart = _ => {this.bus.mmio.store(this.base_addr, 1, 0xFF);};
     this.bus.watchAddress(this.base_addr, value => {
       if(value != 0xFF){
         console.log(this.bus.mmio.load(this.base_addr + 4, 1));

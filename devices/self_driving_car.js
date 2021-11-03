@@ -11,34 +11,34 @@ class Car extends Device{
         this.unityModule = document.getElementById("self_driving_car_window").contentWindow.unityInstance;
         this.unityModule.SendMessage("Control", "setControls", 3);
         this.unityModule.SendMessage("car", "setStatus", "0.3129841089248657,183.72621154785156,359.99310302734375,-19.922077178955078,0.9621117115020752,-34.62373352050781");
+        this.bus.watchAddress(this.base_addr, function (value) {
+          if(value == 1) this.unityModule.SendMessage("car", "getStatus");
+        }.bind(this), 1);
+    
+        this.bus.watchAddress(this.base_addr + 1, function (value) {
+          if(value == 1) this.unityModule.SendMessage("car", "readLineCamera");
+        }.bind(this), 1);
+    
+        this.bus.watchAddress(this.base_addr + 2, function (value) {
+          if(value != 0) this.unityModule.SendMessage("car", "getDistanceSensor", value - 2);
+        }.bind(this), 1);
+    
+        this.bus.watchAddress(this.base_addr + 32, function (value) {
+          value = ((value|0)<<24)>>24;
+          this.unityModule.SendMessage("Control", "setHorizontal", value/128);
+        }.bind(this), 1);
+    
+        this.bus.watchAddress(this.base_addr + 33, function (value) {
+          if(value == 0xFF) value = -1;
+          this.unityModule.SendMessage("Control", "setVertical", value);
+        }.bind(this), 1);
+    
+        this.bus.watchAddress(this.base_addr + 34, function (value) {
+          this.unityModule.SendMessage("Control", "setHandBrake", value);
+        }.bind(this), 1);
       }.bind(this));
     }.bind(this);
     
-    this.bus.watchAddress(this.base_addr, function (value) {
-      if(value == 1) this.unityModule.SendMessage("car", "getStatus");
-    }.bind(this), 1);
-
-    this.bus.watchAddress(this.base_addr + 1, function (value) {
-      if(value == 1) this.unityModule.SendMessage("car", "readLineCamera");
-    }.bind(this), 1);
-
-    this.bus.watchAddress(this.base_addr + 2, function (value) {
-      if(value != 0) this.unityModule.SendMessage("car", "getDistanceSensor", value - 2);
-    }.bind(this), 1);
-
-    this.bus.watchAddress(this.base_addr + 32, function (value) {
-      value = ((value|0)<<24)>>24;
-      this.unityModule.SendMessage("Control", "setHorizontal", value/128);
-    }.bind(this), 1);
-
-    this.bus.watchAddress(this.base_addr + 33, function (value) {
-      if(value == 0xFF) value = -1;
-      this.unityModule.SendMessage("Control", "setVertical", value);
-    }.bind(this), 1);
-
-    this.bus.watchAddress(this.base_addr + 34, function (value) {
-      this.unityModule.SendMessage("Control", "setHandBrake", value);
-    }.bind(this), 1);
 
     var syscallControls =`
       sendMessage({a1, a2, stop: false});

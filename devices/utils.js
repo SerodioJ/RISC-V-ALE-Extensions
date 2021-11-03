@@ -4,31 +4,35 @@ class BusHelper{
   constructor(){
     this.bus_ch = new BroadcastChannel('bus_channel' + window.uniq_id);
     this.syscalls = {}
-    this.addressList = {}
+    this.addressList = []
     this.mmio = mmio;
     this.bus_ch.onmessage = function(ev) {
       if(ev.data.syscall){
         if(this.syscalls[ev.data.syscall]){
           this.syscalls[ev.data.syscall](ev.data.data);
         }
-      }else if(ev.data.write){
-        for (let i = 0; i < ev.data.size; i++) {
-          const wp = this.addressList[ev.data.addr + i]; 
-          if(wp){
-            const mask = [0, 0xFF, 0xFFFF, 0xFFFFFF, 0xFFFFFFFF][wp.size];
-            wp.f((ev.data.value>>(i<<3)) & mask); // TODO: Check endianness 
-          }
-        }
       }
     }.bind(this);
+    setTimeout(this.mmio_update_check.bind(this), 15);
+  }
+
+  mmio_update_check(){
+    for (const i in this.addressList) {
+      const wp = this.addressList[i];
+      const value = this.mmio.load(i, wp.size);
+      if(wp.value == undefined || wp.value == value){
+        wp.f(value);
+      }
+    }
+    setTimeout(this.mmio_update_check.bind(this), 15);
   }
 
   registerSyscallCallback(number, f){
     this.syscalls[number] = f;
   }
 
-  watchAddress(addr, f, size=4){
-    this.addressList[addr] = {f, size};
+  watchAddress(addr, f, size=4, value){
+    this.addressList[addr] = {f, size, value};
   }
 
 }

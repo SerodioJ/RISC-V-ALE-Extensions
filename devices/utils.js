@@ -43,6 +43,7 @@ import {navegation} from "../../assets/js/interface_elements.js";
 export class Device{
   constructor(){
     this.syscalls = [];
+    this.simulator = simulator_controller;
   }
   
   addTab(name, icon, id, content){

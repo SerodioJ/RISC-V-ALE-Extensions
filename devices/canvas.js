@@ -4,18 +4,6 @@ import {Device} from "./utils.js";
 class Canvas extends Device{
   setup(){
     this.addTab("Canvas", "fa-paint-brush", "canvas_device", `
-    <div class="modal fade" role="dialog" tabindex="-1" id="modal_canvas" data-keyboard="false" data-backdrop="static">
-      <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h4 class="modal-title">Canvas</h4><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-          </div>
-          <div class="modal-body" style="overflow-x: auto;">
-            <canvas id="canvas_device_canvas"></canvas>
-          </div>
-        </div>
-      </div>
-    </div>
     <!--  <div class="form-group">
     <label for="canvas_scale_x">Scale X</label>
     <input type="text" class="form-control" name="canvas_scale_x" id="canvas_scale_x" placeholder="" value=1>
@@ -34,6 +22,22 @@ class Canvas extends Device{
     </div>
     <button type="button" class="btn btn-primary" id="canvas_reset">Reset Canvas</button>
     <button type="button" class="btn btn-primary" id="canvas_open_canvas">Open Canvas</button>
+    `);
+
+
+    settings_tab.insertAdjacentHTML('beforebegin', `
+    <div class="modal fade" role="dialog" tabindex="-1" id="modal_canvas" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Canvas</h4><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+        </div>
+        <div class="modal-body" style="overflow-x: auto;">
+          <canvas id="canvas_device_canvas"></canvas>
+        </div>
+      </div>
+    </div>
+    </div>
     `);
 
     document.getElementById("canvas_open_canvas").onclick = _ => {

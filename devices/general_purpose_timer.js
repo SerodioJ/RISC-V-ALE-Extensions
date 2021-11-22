@@ -23,6 +23,7 @@ class General_Purpose_Timer extends Device{
           }, value);
         }
       }else{
+        this.int_timeout = 0;
         clearTimeout(this.timerInt);
       }
     });
